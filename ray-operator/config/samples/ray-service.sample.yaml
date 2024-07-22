@@ -60,7 +60,7 @@ spec:
           - name: Router
             num_replicas: 1
   rayClusterConfig:
-    rayVersion: '2.9.0' # should match the Ray version in the image of the containers
+    rayVersion: '2.10.0' # should match the Ray version in the image of the containers
     ######################headGroupSpecs#################################
     # Ray head pod template.
     headGroupSpec:
@@ -74,14 +74,14 @@ spec:
         spec:
           containers:
             - name: ray-head
-              image: rayproject/ray:2.9.0
+              image: rayproject/ray:2.10.0  # should match with Ray Version, for macOS image name is ray:2.10.0-aarch
               resources:
                 limits:
-                  cpu: 2
-                  memory: 2Gi
+                  cpu: 2  #depending on your machine and avaiable resources change this, min: 1
+                  memory: 2Gi #depending on your machine and avaiable resources change this, min: 1Gi
                 requests:
-                  cpu: 2
-                  memory: 2Gi
+                  cpu: 2  #depending on your machine and avaiable resources change this, min: 1
+                  memory: 2Gi #depending on your machine and avaiable resources change this, min: 1Gi
               ports:
                 - containerPort: 6379
                   name: gcs-server
@@ -91,6 +91,26 @@ spec:
                   name: client
                 - containerPort: 8000
                   name: serve
+              readinessProbe:
+                exec:
+                  command:
+                    - sh
+                    - -c
+                    - wget -T 2 -q -O- http://localhost:52365/api/local_raylet_healthz | grep success && wget -T 2 -q -O- http://localhost:8265/api/gcs_healthz | grep success
+                periodSeconds: 5
+                timeoutSeconds: 60
+                successThreshold: 1
+                failureThreshold: 5
+              livenessProbe:
+                exec:
+                  command:
+                    - sh
+                    - -c
+                    - wget -T 2 -q -O- http://localhost:52365/api/local_raylet_healthz | grep success && wget -T 2 -q -O- http://localhost:8265/api/gcs_healthz | grep success
+                periodSeconds: 5
+                timeoutSeconds: 60
+                successThreshold: 1
+                failureThreshold: 5
     workerGroupSpecs:
       # the pod replicas in this group typed worker
       - replicas: 1
@@ -107,7 +127,7 @@ spec:
           spec:
             containers:
               - name: ray-worker # must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc'
-                image: rayproject/ray:2.9.0
+                image: rayproject/ray:2.10.0
                 lifecycle:
                   preStop:
                     exec:
@@ -119,3 +139,23 @@ spec:
                   requests:
                     cpu: "500m"
                     memory: "2Gi"
+                readinessProbe:
+                  exec:
+                    command:
+                      - sh
+                      - -c
+                      - wget -T 2 -q -O- http://localhost:52365/api/local_raylet_healthz | grep success && wget -T 2 -q -O- http://localhost:8000/-/healthz | grep success
+                  periodSeconds: 5
+                  timeoutSeconds: 60
+                  successThreshold: 1
+                  failureThreshold: 5
+                livenessProbe:
+                  exec:
+                    command:
+                      - sh
+                      - -c
+                      - wget -T 2 -q -O- http://localhost:52365/api/local_raylet_healthz | grep success
+                  periodSeconds: 5
+                  timeoutSeconds: 60
+                  successThreshold: 1
+                  failureThreshold: 5
