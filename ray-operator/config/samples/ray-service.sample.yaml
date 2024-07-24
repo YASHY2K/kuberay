@@ -77,10 +77,10 @@ spec:
               image: rayproject/ray:2.10.0  # should match with Ray Version, for macOS image name is ray:2.10.0-aarch
               resources:
                 limits:
-                  cpu: 2  #depending on your machine and avaiable resources change this, min: 1
+                  cpu: 1  #depending on your machine and avaiable resources change this, min: 1
                   memory: 2Gi #depending on your machine and avaiable resources change this, min: 1Gi
                 requests:
-                  cpu: 2  #depending on your machine and avaiable resources change this, min: 1
+                  cpu: "500m"  #depending on your machine and avaiable resources change this, min: 1
                   memory: 2Gi #depending on your machine and avaiable resources change this, min: 1Gi
               ports:
                 - containerPort: 6379
@@ -135,10 +135,10 @@ spec:
                 resources:
                   limits:
                     cpu: "1"
-                    memory: "2Gi"
+                    memory: "1Gi"
                   requests:
                     cpu: "500m"
-                    memory: "2Gi"
+                    memory: "1Gi"
                 readinessProbe:
                   exec:
                     command:
